@@ -95,7 +95,7 @@
 				"name": "Sanya V. Litvyak",
 				"avatar" : "https://avatars3.githubusercontent.com/u/1585104?v=4&s=460",
 				"desc" : "AboutDeveloper",
-				"active": 0,
+				"active": 1,
 				"links" : {
 					"gh" :"https://github.com/Nya-chan"
 				}
@@ -1044,6 +1044,16 @@
 					"gh" :"https://github.com/mdms-scott",
 					"wb" :"https://github.com/mdms-scott/kk_wiki_scraper"
 				}
+			},
+			{
+				"name": "kancolle-calc",
+				"avatar": "../../assets/img/ui/empty.png",
+				"desc": "AboutPartnerKCCalcDesc",
+				"active": 0,
+				"image": "http://kancolle-calc.net/favicon.ico",
+				"links": {
+					"wb" :"http://kancolle-calc.net"
+				}
 			}
 		]
 	},
@@ -1081,14 +1091,6 @@
 			"links": [
 				"http://www.sanya.moe/kcbadge/",
 				"http://threebards.com"
-			]
-		},
-		{
-			"name": "AboutPartnerKCCalcName",
-			"desc": "AboutPartnerKCCalcDesc",
-			"image": "http://kancolle-calc.net/favicon.ico",
-			"links": [
-				"http://kancolle-calc.net"
 			]
 		},
 		{

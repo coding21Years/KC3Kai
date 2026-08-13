@@ -1074,6 +1074,7 @@ KC3改 Ship Object
 				else if (flag.includes("skilledLookouts")) { return 32; }
 				else if (flag.includes("searchlight")) { return 24; }
 				else if (flag.includes("rotorcraft") || flag.includes("helicopter")) { return 21; }
+				else if (flag.includes("CarrierBomber")) { return 7; }
 				else if (flag.includes("JetFighter")) { return 60; }
 				else if (flag.includes("CarrierFighter")) { return 6; }
 				else if (flag.includes("NightRecon")) { return 50; }
@@ -3069,6 +3070,7 @@ KC3改 Ship Object
 				562, 689, 596, 692, 628, 629, 726, 737, // all remodels of Fletcher-class (except Heywood/Leary base)
 				624, // Yuubari Kai Ni D
 				1040, // Fubuki Kai San Go
+				1062, 1067, // Visby
 			].includes(this.masterId);
 	};
 
@@ -4045,6 +4047,16 @@ KC3改 Ship Object
 			// Daihatsu
 			if(this.hasEquipment(68)) return 3;
 		}
+		// against speed > 0 (!isLand) installations, see SPECIAL_ENTRY3
+		const isTargetSurfaceLandable = KC3Meta.specialSurfaceInstallationNames.includes(targetShip.api_name);
+		if(isTargetSurfaceLandable) {
+			// Toku Daihatsu + Chi-Ha and Kai
+			if(this.hasEquipment([494, 495])) return 10;
+			// Toku Daihatsu + T1 Gun Tank
+			if(this.hasEquipment(449)) return 10;
+			// Toku Daihatsu + 11th Tank
+			if(this.hasEquipment(230)) return 5;
+		}
 		return 0;
 	};
 
@@ -4335,8 +4347,8 @@ KC3改 Ship Object
 		// currently known ships: Graf / Graf Kai, Saratoga, Taiyou Class Kai Ni, Kaga Kai Ni Go
 		// exceptions: Gambier Bay Mk.II don't move if NOAP flag not met although fp is 3
 		//             Langley and Kai fp > 0, but seems don't attack either
-		//             Independence and Kai fp > 0, don't attack? but Flight II supposed to move
-		if(isThisCarrier && initYasen > 0 && ![707, 925, 930, 1023, 1028].includes(this.masterId)) return true;
+		//             Independence all remodels fp > 0 don't attack, Flight II neither?
+		if(isThisCarrier && initYasen > 0 && ![707, 925, 930, 1023, 1028, 1036].includes(this.masterId)) return true;
 		// Shimanemaru Kai gets special behaviors: moves like a night carrier when any night plane equipped,
 		// but falls back to shelling fires when she is chuuha.
 		const isShimanemaruKaiWithNightPlane = (this.masterId == 1008) && this.canCarrierNightAirAttack();
@@ -4695,12 +4707,13 @@ KC3改 Ship Object
 				1025, 1030, // Wasp
 				529, 536, 889, // Taiyou/Shinyou/Unyou Kai Ni
 				646, // Kaga K2Go
+				//1055, 1060, 1061, // Bearn (forgotten again)
 			].includes(this.masterId);
 			if(isSpecialCarrier || isSpecialAbyssal) pushRocketAttackIfNecessary(["SingleAttack", 0]);
 			// here just indicates 'attack type', not 'can attack or not', see #canDoNightAttack
 			// Taiyou Kai Ni fell back to shelling attack if no bomber equipped, but ninja changed by devs:
 			// she was doing air attack against surface ships, but no plane appears if no aircraft equipped.
-			// Known ships go here: Ark with Swordfish ~~, Taiyou-class K2, Kaga K2Go, Lexington, Wasp~~
+			// Known ships go here: Ark with Swordfish ~~, Taiyou-class K2, Kaga K2Go, Lexington, Wasp~~, Bearn
 			else results.push(["AirAttack", 1]);
 		} else if(isThisSubmarine) {
 			pushRocketAttackIfNecessary(["Torpedo", 3]);
@@ -4947,7 +4960,7 @@ KC3改 Ship Object
 	 */
 	KC3Ship.prototype.nightCutinRate = function(spType = 0, cutinSubType = "") {
 		if (spType < 1 || this.isDummy()) { return false; }
-		// not sure: DA success rate almost 99%
+		// According statistics of tests, DA success rate fixed to ~99% (109/110?) irrelevant to base rate
 		if (spType === 1) { return 99; }
 		const typeFactor = {
 			2: 115, // TorpTorpMain
@@ -6120,7 +6133,7 @@ KC3改 Ship Object
 			!canAsw ? "" : KC3Meta.term("ShipAccAntisub").format(
 				floorToDecimal(accuracyInfo.asw.accuracy, 1)
 			)
-		].filter(v => !!v).join(" / "));
+		].compact().join(" / "));
 		const shellingEvasion = shipObj.shellingEvasion(
 			shipObj.estimateShellingFormationModifier(battleConds.formationId, battleConds.enemyFormationId, "evasion", false)
 		);
