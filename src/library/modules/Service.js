@@ -448,13 +448,10 @@ See Manifest File [manifest.json] under "background" > "scripts"
 		so execute it via the background service instead
 		------------------------------------------*/
 		"windowOpen" :function(request, sender, response) {
-			const targetIdMap = {};
-			// todo if targeted window opened already, update it instead of create
-			chrome.tabs.create({
-				url: request.url
-			}, function(tab){
-				if(request.target) targetIdMap[request.target] = tab.id;
-			});
+			// window.open is unreliable inside a DevTools panel in Electron,
+			// but works from the extension background page where the host can
+			// intercept the request and create a BrowserWindow.
+			window.open(request.url, request.target || "_blank");
 		},
 		
 		/* DMM FRAME INJECTION

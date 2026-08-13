@@ -67,15 +67,10 @@
       url = (baseUrl || exportBaseUrl) + encodeURI(json);
     }
     //console.debug("Site to be exported", url);
-    if (!!target && target !== "_blank") {
-      const ref = window.open(url, target);
-      if (ref && !ref.closed) {
-        ref.location.replace(url);
-        if (ref.focus) ref.focus();
-      }
-    } else {
-      window.open(url);
-    }
+    (new RMsg("service", "windowOpen", {
+      url: url,
+      target: target || "_blank"
+    })).execute();
   }
 
   function exportCurrentFleets(lbWorldId, baseUrl, target, deployedOnly) {

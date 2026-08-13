@@ -85,4 +85,87 @@ Sample Usage:
 		return true; // for async callbacks
 	};
 	
+
+	/* STRATEGY ROOM INSIDE THE REAL DEVTOOLS PANEL
+	Only a KC3Kai theme page handles this message. This prevents the popup
+	from hosting Strategy Room in Electron's separate popup storage context.
+	------------------------------------------*/
+	const isDevToolsThemePage = function(){
+		return /^\/pages\/devtools\/themes\/[^/]+\/[^/]+\.html$/.test(
+			window.location.pathname
+		);
+	};
+
+	const openStrategyRoomInDevTools = function(tabPath){
+		const frameId = "kc3kai-strategy-room-frame";
+		const closeId = "kc3kai-strategy-room-close";
+		const targetUrl = chrome.runtime.getURL(
+			"pages/strategy/strategy.html#" + (tabPath || "profile")
+		);
+		let frame = document.getElementById(frameId);
+
+		if(frame){
+			frame.src = targetUrl;
+			frame.style.display = "block";
+			const closeButton = document.getElementById(closeId);
+			if(closeButton) closeButton.style.display = "block";
+			return;
+		}
+
+		frame = document.createElement("iframe");
+		frame.id = frameId;
+		frame.src = targetUrl;
+		frame.setAttribute("allow", "clipboard-read; clipboard-write");
+		Object.assign(frame.style, {
+			position: "fixed",
+			inset: "0",
+			width: "100%",
+			height: "100%",
+			border: "0",
+			background: "#fff",
+			zIndex: "2147483646"
+		});
+
+		const closeButton = document.createElement("button");
+		closeButton.id = closeId;
+		closeButton.type = "button";
+		closeButton.textContent = "×";
+		closeButton.title = "Close Strategy Room";
+		Object.assign(closeButton.style, {
+			position: "fixed",
+			top: "8px",
+			right: "8px",
+			width: "36px",
+			height: "36px",
+			padding: "0",
+			border: "1px solid rgba(255,255,255,.4)",
+			borderRadius: "4px",
+			background: "rgba(0,0,0,.75)",
+			color: "#fff",
+			fontSize: "28px",
+			lineHeight: "30px",
+			cursor: "pointer",
+			zIndex: "2147483647"
+		});
+		closeButton.addEventListener("click", function(){
+			frame.style.display = "none";
+			closeButton.style.display = "none";
+		});
+
+		document.body.appendChild(frame);
+		document.body.appendChild(closeButton);
+	};
+
+	chrome.runtime.onMessage.addListener(function(request, sender, response){
+		if(
+			request &&
+			request.identifier === "kc3_devtools" &&
+			request.action === "strategyRoomPage" &&
+			isDevToolsThemePage()
+		){
+			openStrategyRoomInDevTools(request.tabPath);
+			response({ opened: true });
+		}
+	});
+
 })();

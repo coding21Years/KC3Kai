@@ -4,31 +4,32 @@
 	
 	// Document ready
 	$(document).on("ready", function(){
-		// Load previously stored configs
-		try {
-			// Attempt to load config from localStorage
-			ConfigManager.load();
-			
-			// Check if theme exists
-			$.ajax({
-				type: "HEAD",
-				url: "themes/" + ConfigManager.pan_theme + "/" + ConfigManager.pan_theme + ".html",
-				success: function(){
-					createPanel( ConfigManager.pan_theme );
-				},
-				error: function(){
-					createFailPanel();
+		ConfigManager.ready(function(){
+			// Load the shared config after chrome.storage.local has been mirrored.
+			try {
+				ConfigManager.load();
+				
+				// Check if theme exists
+				$.ajax({
+					type: "HEAD",
+					url: "themes/" + ConfigManager.pan_theme + "/" + ConfigManager.pan_theme + ".html",
+					success: function(){
+						createPanel( ConfigManager.pan_theme );
+					},
+					error: function(){
+						createFailPanel();
+					}
+				});
+				
+				if (ConfigManager.apiRecorder) {
+					createApiRecorderPanel();
 				}
-			});
-			
-			if (ConfigManager.apiRecorder) {
-				createApiRecorderPanel();
+				
+			} catch (e) {
+				// Catch any exceptions in the attempt
+				createFailPanel();
 			}
-			
-		} catch (e) {
-			// Catch any exceptions in the attempt
-			createFailPanel();
-		}
+		});
 	});
 	
 	// Execute Chrome API to add panels to devtools

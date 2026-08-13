@@ -710,9 +710,12 @@
 					return;
 				}
 			}
-			window.open("http://www.kancolle-calc.net/deckbuilder.html?predeck=".concat(encodeURI(
-				JSON.stringify(PlayerManager.prepareDeckbuilder())
-			)));
+			(new RMsg("service", "windowOpen", {
+				url: "http://www.kancolle-calc.net/deckbuilder.html?predeck=".concat(encodeURI(
+					JSON.stringify(PlayerManager.prepareDeckbuilder())
+				)),
+				target: "_blank"
+			})).execute();
 		});
 
 		const prepareBattleLogsData = function(){

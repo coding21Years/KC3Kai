@@ -9,6 +9,25 @@ Retrieves when needed to apply on components
 	"use strict";
 
 	const CONFIG_KEY_NAME = "config";
+	const storageReadyCallbacks = [];
+	let storageReady = false;
+
+	const hasChromeStorage = function(){
+		return typeof chrome !== "undefined" &&
+			chrome.storage && chrome.storage.local;
+	};
+
+	const serializeStoredConfig = function(value){
+		if(typeof value === "undefined" || value === null) return null;
+		return typeof value === "string" ? value : JSON.stringify(value);
+	};
+
+	const markStorageReady = function(){
+		storageReady = true;
+		while(storageReadyCallbacks.length){
+			storageReadyCallbacks.shift()();
+		}
+	};
 
 	window.ConfigManager = {
 
@@ -254,6 +273,17 @@ Retrieves when needed to apply on components
 			return CONFIG_KEY_NAME;
 		},
 
+		// Wait until chrome.storage.local has been mirrored into this context.
+		// Keeps the existing synchronous load/save API used throughout KC3Kai.
+		ready : function(callback){
+			if(typeof callback !== "function") return;
+			if(storageReady){
+				callback();
+			}else{
+				storageReadyCallbacks.push(callback);
+			}
+		},
+
 		// Reset value of a specific key to the current default value
 		resetValueOf : function(key){
 			ConfigManager.loadIfNecessary();
@@ -303,9 +333,15 @@ Retrieves when needed to apply on components
 			}
 		},
 
-		// Save current config onto localStorage
+		// Save current config to both the synchronous per-context mirror and
+		// chrome.storage.local, which is shared by extension contexts.
 		save : function(){
-			localStorage[CONFIG_KEY_NAME] = JSON.stringify(this);
+			const serialized = JSON.stringify(this);
+			localStorage[CONFIG_KEY_NAME] = serialized;
+
+			if(hasChromeStorage()){
+				chrome.storage.local.set({ [CONFIG_KEY_NAME]: serialized });
+			}
 		},
 
 		isNotToSaveSortie : function(world, map){
@@ -547,6 +583,41 @@ Retrieves when needed to apply on components
 			var ret = !isNaN(x) && isFinite(x) && typeof x === 'number' && !this.exists(x);
 			try { ret &= KC3ShipManager.get(x).rosterId == x; } catch (e) {} finally { return ret; }
 		});
+
+	// Use chrome.storage.local as the authoritative cross-context value while
+	// retaining localStorage as a synchronous compatibility mirror.
+	if(hasChromeStorage()){
+		chrome.storage.onChanged.addListener(function(changes, areaName){
+			if(areaName !== "local" || !changes[CONFIG_KEY_NAME]) return;
+
+			const serialized = serializeStoredConfig(changes[CONFIG_KEY_NAME].newValue);
+			if(serialized === null){
+				localStorage.removeItem(CONFIG_KEY_NAME);
+				return;
+			}
+
+			if(localStorage[CONFIG_KEY_NAME] !== serialized){
+				localStorage[CONFIG_KEY_NAME] = serialized;
+				ConfigManager.load();
+				window.dispatchEvent(new CustomEvent("kc3-config-changed"));
+			}
+		});
+
+		chrome.storage.local.get(CONFIG_KEY_NAME, function(result){
+			const sharedConfig = serializeStoredConfig(result[CONFIG_KEY_NAME]);
+			const localConfig = localStorage[CONFIG_KEY_NAME] || null;
+
+			if(sharedConfig !== null){
+				localStorage[CONFIG_KEY_NAME] = sharedConfig;
+			}else if(localConfig !== null){
+				chrome.storage.local.set({ [CONFIG_KEY_NAME]: localConfig });
+			}
+
+			markStorageReady();
+		});
+	}else{
+		markStorageReady();
+	}
 
 })();
 
