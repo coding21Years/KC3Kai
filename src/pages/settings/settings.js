@@ -2,7 +2,7 @@
 	"use strict";
 	
 	// Document ready
-	$(document).on("ready", function(){
+	const initialize = function(){
 		// Load previously stored configs
 		ConfigManager.load();
 		KC3Meta.init("/data/");
@@ -64,6 +64,10 @@
 			}
 		});
 		
+	};
+
+	$(document).on("ready", function(){
+		ConfigManager.ready(initialize);
 	});
 	
 })();

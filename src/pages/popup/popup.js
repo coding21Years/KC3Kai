@@ -9,7 +9,7 @@
 	Them knowing how many hours and minutes left at a glance is good enough.
 	*/
 
-	$(document).on("ready", function(){
+	const initialize = function(){
 		// Load previously stored configs
 		ConfigManager.load();
 		KC3Meta.init("../../data/");
@@ -131,6 +131,10 @@
 			UTC6AM.getTime() - now,
 			UTC6PM.getTime() - now);
 		$(".timePvP").text( String(remaining/1000).toHHMMSS() );
+	};
+
+	$(document).on("ready", function(){
+		ConfigManager.ready(initialize);
 	});
 	
 })();
