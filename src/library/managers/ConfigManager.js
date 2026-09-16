@@ -633,7 +633,6 @@ Retrieves when needed to apply on components
 			if(localStorage[CONFIG_KEY_NAME] !== serialized){
 				localStorage[CONFIG_KEY_NAME] = serialized;
 				ConfigManager.load();
-				window.dispatchEvent(new CustomEvent("kc3-config-changed"));
 			}
 		});
 
